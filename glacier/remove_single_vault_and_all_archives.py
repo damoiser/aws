@@ -123,6 +123,12 @@ print("you can always abort the script running CTRL-C")
 
 create_dir_structure()
 
+def exit_signal_handler(signal, frame):
+        print('bye!')
+        sys.exit(0)
+
+signal.signal(signal.SIGINT, exit_signal_handler)
+
 account_id = input("enter account id (blank if same as configured in aws): ")
 if account_id == "":
   # if using the default one use dash
