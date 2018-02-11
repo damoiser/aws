@@ -80,7 +80,8 @@ def delete_archives(account_id, vault_name, region):
 
   print("there are " + str(len(aws_results["ArchiveList"])) + " archives to be deleted: ")
   for archive in aws_results["ArchiveList"]:
-    subprocess.run(['aws', 'glacier', 'delete-archive', '--account-id', account_id, '--vault-name', vault_name, '--archive-id', archive["ArchiveId"]])
+    # print("exec: aws glacier delete-archive --account-id " + account_id + " --vault-name " + vault_name + " --archive-id='" + archive["ArchiveId"] + "'")
+    subprocess.run(['aws', 'glacier', 'delete-archive', '--account-id', account_id, '--vault-name', vault_name, '--archive-id=\'' + archive["ArchiveId"] + '\''])
     print('.', end='', flush=True)
 
   print("\n")
