@@ -69,7 +69,7 @@ def get_inventory_result(account_id, vault_name, region, job_id):
   print("exec: aws glacier get-job-output --account-id " + account_id + " --vault-name " + vault_name + " --job-id " + job_id + " " + job_result_filename(vault_name, region))
   subprocess.run(['aws', 'glacier', 'get-job-output', '--account-id', account_id, '--vault-name', vault_name, '--job-id', job_id, job_result_filename(vault_name, region)])
 
-  should_continue = input("aws results retrieved and stored in " + job_result_filename(vault_name, region), " do you want to begin the deletion of the archives? [Y/N]: ")
+  should_continue = input("aws results retrieved and stored in " + job_result_filename(vault_name, region) + " do you want to begin the deletion of the archives? [Y/N]: ")
   if should_continue.lower() == "y" or should_continue.lower() == "yes":
     delete_archives(account_id, vault_name, region)
 
