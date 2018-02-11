@@ -1,3 +1,4 @@
 
 # ignore aws jobs tmp files
 *.job
+results*
