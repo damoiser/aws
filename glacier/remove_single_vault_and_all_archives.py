@@ -1,5 +1,5 @@
 
-import subprocess, json, sys, os, glob
+import subprocess, json, sys, os, glob, signal
 
 ########################################
 # functions
@@ -29,7 +29,7 @@ def check_pending_jobs(account_id):
 
     for job_file in job_files:
       region = job_file.split("__")[0]
-      vault_name = job_file.split("__")[1]
+      vault_name = job_file.split("__")[1].split(".job")[0]
 
       file = open(job_file, "r")
       job_id = file.read()
@@ -119,6 +119,7 @@ def print_vaults(account_id):
 print("THIS SCRIPT IS STILL IN WORK IN PROGRESS - DONT USE IT YET")
 
 print("this script will delete all archives and the vault or resume a pending job, see glacier/README.md for further details how it works")
+print("you can always abort the script running CTRL-C")
 
 create_dir_structure()
 
