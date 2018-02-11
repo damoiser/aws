@@ -75,13 +75,15 @@ def get_inventory_result(account_id, vault_name, region, job_id):
 
 def delete_archives(account_id, vault_name, region):
   result_file = open(job_result_filename(vault_name, region), "r")
-  aws_results = result_file.read()
+  aws_results = json.loads(result_file.read())
   result_file.close()
 
   print("there are " + str(len(aws_results["ArchiveList"])) + " archives to be deleted: ")
   for archive in aws_results["ArchiveList"]:
     subprocess.run(['aws', 'glacier', 'delete-archive', '--account-id', account_id, '--vault-name', vault_name, '--archive-id', archive["ArchiveId"]])
     print('.', end='', flush=True)
+
+  print("\n")
 
   os.rename(job_tmp_filename(vault_name, region), job_tmp_filename(vault_name, region) + ".done")
 
