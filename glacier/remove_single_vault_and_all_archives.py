@@ -5,7 +5,7 @@ import subprocess, json, sys, os, glob
 # functions
 ########################################
 
-# main processes
+# MAIN FUNCS
 
 def init_inventory_job(account_id, vault_name, region):
   print("starting init inventory job, after the initialization you need to wait some hours to wait that AWS finish the job, you can rerun the job to check the status")
@@ -59,19 +59,27 @@ def check_pending_jobs(account_id):
 
 def get_inventory_result(account_id, vault_name, region):
   print("getting inventory results...")
-  aws_result = json.loads(subprocess.run(['aws', 'glacier', 'get-job-output', '--account-id', account_id, '--vault-name', vault_name, job_result_filename(vault_name, region)], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
-
-  os.rename(job_tmp_filename(vault_name, region), job_tmp_filename(vault_name, region) + ".done")
+  subprocess.run(['aws', 'glacier', 'get-job-output', '--account-id', account_id, '--vault-name', vault_name, job_result_filename(vault_name, region)])
 
   should_continue = ("aws results retrieved and stored in " + job_result_filename(vault_name, region), " do you want to begin the deletion of the archives? [Y/N]: ")
   if should_continue.lower() == "y" or should_continue.lower() == "yes":
     delete_archives(account_id, vault_name, region)
 
 def delete_archives(account_id, vault_name, region):
+  result_file = open(job_result_filename(vault_name, region), "r")
+  aws_results = result_file.read()
+  result_file.close()
 
-
+  print("there are " + str(len(aws_results["ArchiveList"])) + " archives to be deleted: ")
+  for archive in aws_results["ArchiveList"]:
+    subprocess.run(['aws', 'glacier', 'delete-archive', '--account-id', account_id, '--vault-name', vault_name, '--archive-id', archive["ArchiveId"]])
+    print('.', end='', flush=True)
 
   os.rename(job_tmp_filename(vault_name, region), job_tmp_filename(vault_name, region) + ".done")
+
+  should_continue = input("archives deletion completed, do you want to remove the vault " + vault_name + "? [Y/N]: ")
+  if should_continue.lower() == "y" or should_continue.lower() == "yes":
+    subprocess.run(['aws', 'glacier', 'delete-vault', '--account-id', account_id, '--vault-name'])
 
 # AUX FUNCS
 
@@ -116,6 +124,12 @@ if account_id == "":
   # if using the default one use dash
   account_id = "-"
 
+aws_region = subprocess.run(['aws', 'configure', 'get', 'region'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n')
+
+region = input("enter region (blank for " + aws_region + "): ")
+
+if region == "":
+  region = aws_region
 
 print("checking if there are current pending jobs...")
 check_pending_jobs(account_id)
@@ -130,11 +144,4 @@ while True:
   else:
     break
 
-
-aws_region = subprocess.run(['aws', 'configure', 'get', 'region'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n')
-
-region = input("enter region (blank for " + aws_region + "): ")
-
-if region == "":
-  region = aws_region
-
+init_inventory_job(account_id, vault_name, region)
