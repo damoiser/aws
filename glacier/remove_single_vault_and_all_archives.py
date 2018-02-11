@@ -9,7 +9,7 @@ import subprocess, json, sys, os, glob
 
 def init_inventory_job(account_id, vault_name, region):
   print("starting init inventory job, after the initialization you need to wait some hours to wait that AWS finish the job, you can rerun the job to check the status")
-  aws_job_response = json.loads(subprocess.run(['aws', 'glacier', 'initiate-job', '--job-parameters', '\'{"Type": "inventory-retrieval"}\'', '--vault-name', vault_name, '--account-id', account_id, '--region', region], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
+  aws_job_response = json.loads(subprocess.run(['aws', 'glacier', 'initiate-job', '--job-parameters', '{"Type": "inventory-retrieval"}', '--vault-name', vault_name, '--account-id', account_id, '--region', region], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
 
   job_id = aws_job_response["jobId"]
 
