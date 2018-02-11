@@ -59,6 +59,8 @@ def check_pending_jobs(account_id):
             if should_continue.lower() == "y" or should_continue.lower() == "yes":
               get_inventory_result(account_id, vault_name, region)
             break
+      else:
+        print("don't continue with current jobs")
   else:
     print("no pending jobs found")
 
