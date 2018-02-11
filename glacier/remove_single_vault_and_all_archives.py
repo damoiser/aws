@@ -128,7 +128,7 @@ print("you can always abort the script running CTRL-C")
 create_dir_structure()
 
 def exit_signal_handler(signal, frame):
-        print('bye!')
+        print('\nbye!')
         sys.exit(0)
 
 signal.signal(signal.SIGINT, exit_signal_handler)
