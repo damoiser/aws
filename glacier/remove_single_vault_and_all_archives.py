@@ -9,10 +9,9 @@ import subprocess, json, sys, os, glob
 
 def init_inventory_job(account_id, vault_name, region):
   print("starting init inventory job, after the initialization you need to wait some hours to wait that AWS finish the job, you can rerun the job to check the status")
-  # aws_job_response = json.loads(subprocess.run(['aws', 'glacier', 'initiate-job', '--job-parameters', '\'{"Type": "inventory-retrieval"}\'', '--vault-name', vault_name, '--account-id', account_id, '--region', region], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
+  aws_job_response = json.loads(subprocess.run(['aws', 'glacier', 'initiate-job', '--job-parameters', '\'{"Type": "inventory-retrieval"}\'', '--vault-name', vault_name, '--account-id', account_id, '--region', region], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
 
-  # job_id = aws_job_response["jobId"]
-  job_id = "bla"
+  job_id = aws_job_response["jobId"]
 
   print("job for vault " + vault_name + " initiated (job id: "  + job_id + "), job id stored in " + job_tmp_filename(vault_name, region))
 
@@ -22,6 +21,8 @@ def init_inventory_job(account_id, vault_name, region):
 
 
 def check_pending_jobs(account_id):
+  print("checking pending jobs...")
+
   job_files = glob.glob("jobs/*.job")
   if len(job_files) > 0:
     print("there are " + str(len(job_files)) + " pending job(s)")
@@ -56,6 +57,8 @@ def check_pending_jobs(account_id):
             if should_continue.lower() == "y" or should_continue.lower() == "yes":
               get_inventory_result(account_id, vault_name, region)
             break
+  else:
+    print("no pending jobs found")
 
 def get_inventory_result(account_id, vault_name, region):
   print("getting inventory results...")
@@ -115,7 +118,7 @@ def print_vaults(account_id):
 
 print("THIS SCRIPT IS STILL IN WORK IN PROGRESS - DONT USE IT YET")
 
-print("this script will delete all archives and the vault, see glacier/README.md for further details how it works")
+print("this script will delete all archives and the vault or resume a pending job, see glacier/README.md for further details how it works")
 
 create_dir_structure()
 
@@ -137,7 +140,7 @@ check_pending_jobs(account_id)
 print_vaults(account_id)
 
 while True:
-  vault_name = input("enter vault name: ")
+  vault_name = input("enter vault name to be deleted: ")
 
   if vault_name == "":
     print("please define a valid vault name...")
