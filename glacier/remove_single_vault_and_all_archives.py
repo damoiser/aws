@@ -93,6 +93,8 @@ def delete_archives(account_id, vault_name, region):
     print("exec: aws glacier delete-vault --account-id " + account_id + " --vault-name " + vault_name)
     subprocess.run(['aws', 'glacier', 'delete-vault', '--account-id', account_id, '--vault-name', vault_name])
 
+  sys.exit()
+
 # AUX FUNCS
 
 def create_dir_structure():
@@ -124,8 +126,6 @@ def print_vaults(account_id):
 ########################################
 # init
 ########################################
-
-print("THIS SCRIPT IS STILL IN WORK IN PROGRESS - DONT USE IT YET")
 
 print("this script will delete all archives and the vault or resume a pending job, see glacier/README.md for further details how it works")
 print("you can always abort the script running CTRL-C")
