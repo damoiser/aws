@@ -1,4 +1,5 @@
 
 # ignore aws jobs tmp files
 *.job
+*.job.done
 results*
