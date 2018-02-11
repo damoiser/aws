@@ -54,14 +54,24 @@ def check_pending_jobs(account_id):
           if aws_job["StatusCode"] == "Succeeded":
             should_continue = input("the job is successfully finished, do you want to retrieve the results? [Y/N]: ")
             if should_continue.lower() == "y" or should_continue.lower() == "yes":
-              get_inventory_result(vault_name, region)
+              get_inventory_result(account_id, vault_name, region)
             break
 
-def get_inventory_result(vault_name, region):
+def get_inventory_result(account_id, vault_name, region):
+  print("getting inventory results...")
+  aws_result = json.loads(subprocess.run(['aws', 'glacier', 'get-job-output', '--account-id', account_id, '--vault-name', vault_name, job_result_filename(vault_name, region)], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
+
+  os.rename(job_tmp_filename(vault_name, region), job_tmp_filename(vault_name, region) + ".done")
+
+  should_continue = ("aws results retrieved and stored in " + job_result_filename(vault_name, region), " do you want to begin the deletion of the archives? [Y/N]: ")
+  if should_continue.lower() == "y" or should_continue.lower() == "yes":
+    delete_archives(account_id, vault_name, region)
+
+def delete_archives(account_id, vault_name, region):
 
 
 
-def delete_archives():
+  os.rename(job_tmp_filename(vault_name, region), job_tmp_filename(vault_name, region) + ".done")
 
 # AUX FUNCS
 
@@ -69,16 +79,11 @@ def create_dir_structure():
   if not os.path.exists("jobs"):
     os.makedirs("jobs")
 
-
 def job_tmp_filename(vault_name, region):
   return "jobs/" + str(region) + "__" + str(vault_name) + ".job"
 
-def job_result_filename(vault_name, region, job_id):
-  return "jobs/" + str(region) + "__" + str(vault_name) + "__" + str(job_id) + ".json"
-
-# def get_job_id_from_file(vault_name, region):
-  
-# def is_job_finished(account_id, vault_name):
+def job_result_filename(vault_name, region):
+  return "jobs/results_" + str(region) + "__" + str(vault_name) + ".json"
 
 def print_vaults(account_id):
   aws_vaults_json = json.loads(subprocess.run(['aws', 'glacier', 'list-vaults', '--account-id', account_id], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
@@ -94,8 +99,6 @@ def print_vaults(account_id):
   else:
     print("cannot get all vaults")
     sys.exit()
-
-
 
 
 ########################################
@@ -116,8 +119,6 @@ if account_id == "":
 
 print("checking if there are current pending jobs...")
 check_pending_jobs(account_id)
-
-
 
 print_vaults(account_id)
 
