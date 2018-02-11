@@ -29,7 +29,7 @@ def check_pending_jobs(account_id):
     print("there are " + str(len(job_files)) + " pending job(s)")
 
     for job_file in job_files:
-      region = job_file.split("__")[0]
+      region = job_file.split("__")[0].split("/")[1]
       vault_name = job_file.split("__")[1].split(".job")[0]
 
       file = open(job_file, "r")
@@ -57,19 +57,19 @@ def check_pending_jobs(account_id):
           if aws_job["StatusCode"] == "Succeeded":
             should_continue = input("the job is successfully finished, do you want to retrieve the results? [Y/N]: ")
             if should_continue.lower() == "y" or should_continue.lower() == "yes":
-              get_inventory_result(account_id, vault_name, region)
+              get_inventory_result(account_id, vault_name, region, job_id)
             break
       else:
         print("don't continue with current jobs")
   else:
     print("no pending jobs found")
 
-def get_inventory_result(account_id, vault_name, region):
+def get_inventory_result(account_id, vault_name, region, job_id):
   print("getting inventory results...")
-  print("exec: aws glacier get-job-output --account-id " + account_id + " --vault-name " + vault_name + " " + job_result_filename(vault_name, region))
-  subprocess.run(['aws', 'glacier', 'get-job-output', '--account-id', account_id, '--vault-name', vault_name, job_result_filename(vault_name, region)])
+  print("exec: aws glacier get-job-output --account-id " + account_id + " --vault-name " + vault_name + " --job-id " + job_id + " " + job_result_filename(vault_name, region))
+  subprocess.run(['aws', 'glacier', 'get-job-output', '--account-id', account_id, '--vault-name', vault_name, '--job-id', job_id, job_result_filename(vault_name, region)])
 
-  should_continue = ("aws results retrieved and stored in " + job_result_filename(vault_name, region), " do you want to begin the deletion of the archives? [Y/N]: ")
+  should_continue = input("aws results retrieved and stored in " + job_result_filename(vault_name, region), " do you want to begin the deletion of the archives? [Y/N]: ")
   if should_continue.lower() == "y" or should_continue.lower() == "yes":
     delete_archives(account_id, vault_name, region)
 
