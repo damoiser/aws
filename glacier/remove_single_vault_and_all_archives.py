@@ -9,6 +9,7 @@ import subprocess, json, sys, os, glob, signal
 
 def init_inventory_job(account_id, vault_name, region):
   print("starting init inventory job, after the initialization you need to wait some hours to wait that AWS finish the job, you can rerun the job to check the status")
+  print("exec: aws glacier initiate-job --job-parameters {\"Type\": \"inventory-retrieval\"} --account-id " + account_id + " --vault-name " + vault_name)
   aws_job_response = json.loads(subprocess.run(['aws', 'glacier', 'initiate-job', '--job-parameters', '{"Type": "inventory-retrieval"}', '--vault-name', vault_name, '--account-id', account_id, '--region', region], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
 
   job_id = aws_job_response["jobId"]
@@ -38,6 +39,7 @@ def check_pending_jobs(account_id):
       should_continue = input("do you want to check the status for region " + region + " vault name " + vault_name + " and job id " + job_id + "? [Y/N]: ")
       if should_continue.lower() == "y" or should_continue.lower() == "yes":
 
+        print("exec: aws glacier list-jobs --account-id " + account_id + " --vault-name " + vault_name)
         aws_jobs = json.loads(subprocess.run(['aws', 'glacier', 'list-jobs', '--account-id', account_id, '--vault-name', vault_name], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
 
         for aws_job in aws_jobs["JobList"]:
@@ -62,6 +64,7 @@ def check_pending_jobs(account_id):
 
 def get_inventory_result(account_id, vault_name, region):
   print("getting inventory results...")
+  print("exec: aws glacier get-job-output --account-id " + account_id + " --vault-name " + vault_name + " " + job_result_filename(vault_name, region))
   subprocess.run(['aws', 'glacier', 'get-job-output', '--account-id', account_id, '--vault-name', vault_name, job_result_filename(vault_name, region)])
 
   should_continue = ("aws results retrieved and stored in " + job_result_filename(vault_name, region), " do you want to begin the deletion of the archives? [Y/N]: ")
@@ -82,6 +85,7 @@ def delete_archives(account_id, vault_name, region):
 
   should_continue = input("archives deletion completed, do you want to remove the vault " + vault_name + "? [Y/N]: ")
   if should_continue.lower() == "y" or should_continue.lower() == "yes":
+    print("exec: aws glacier delete-vault --account-id " + account_id + " --vault-name " + vault_name)
     subprocess.run(['aws', 'glacier', 'delete-vault', '--account-id', account_id, '--vault-name'])
 
 # AUX FUNCS
