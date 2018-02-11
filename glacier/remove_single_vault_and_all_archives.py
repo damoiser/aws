@@ -1,5 +1,5 @@
 
-import subprocess, json, sys, os
+import subprocess, json, sys, os, glob
 
 ########################################
 # functions
@@ -21,10 +21,47 @@ def init_inventory_job(account_id, vault_name, region):
   job_file.close()
 
 
-# def get_inventory_result(vault_name, region):
+def check_pending_jobs(account_id):
+  job_files = glob.glob("jobs/*.job")
+  if len(job_files) > 0:
+    print("there are " + str(len(job_files)) + " pending job(s)")
+
+    for job_file in job_files:
+      region = job_file.split("__")[0]
+      vault_name = job_file.split("__")[1]
+
+      file = open(job_file, "r")
+      job_id = file.read()
+      file.close()
+
+      should_continue = input("do you want to check the status for region " + region + " vault name " + vault_name + " and job id " + job_id + "? [Y/N]: ")
+      if should_continue.lower() == "y" or should_continue.lower() == "yes":
+
+        aws_jobs = json.loads(subprocess.run(['aws', 'glacier', 'list-jobs', '--account-id', account_id, '--vault-name', vault_name], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
+
+        for aws_job in aws_jobs["JobList"]:
+          if aws_job["JobId"] != job_id:
+            continue
+
+          if aws_job["StatusCode"] == "InProgress":
+            print("the jobs is still running...")
+            break
+
+          if aws_job["StatusCode"] == "Failed":
+            print("the job has failed!")
+            break
+
+          if aws_job["StatusCode"] == "Succeeded":
+            should_continue = input("the job is successfully finished, do you want to retrieve the results? [Y/N]: ")
+            if should_continue.lower() == "y" or should_continue.lower() == "yes":
+              get_inventory_result(vault_name, region)
+            break
+
+def get_inventory_result(vault_name, region):
 
 
-# def delete_archives():
+
+def delete_archives():
 
 # AUX FUNCS
 
@@ -75,6 +112,11 @@ account_id = input("enter account id (blank if same as configured in aws): ")
 if account_id == "":
   # if using the default one use dash
   account_id = "-"
+
+
+print("checking if there are current pending jobs...")
+check_pending_jobs(account_id)
+
 
 
 print_vaults(account_id)
