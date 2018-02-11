@@ -88,10 +88,13 @@ def delete_archives(account_id, vault_name, region):
 
   os.rename(job_tmp_filename(vault_name, region), job_tmp_filename(vault_name, region) + ".done")
 
-  should_continue = input("archives deletion completed, do you want to remove the vault " + vault_name + "? [Y/N]: ")
-  if should_continue.lower() == "y" or should_continue.lower() == "yes":
-    print("exec: aws glacier delete-vault --account-id " + account_id + " --vault-name " + vault_name)
-    subprocess.run(['aws', 'glacier', 'delete-vault', '--account-id', account_id, '--vault-name', vault_name])
+  # should_continue = input("archives deletion completed, do you want to remove the vault " + vault_name + "? [Y/N]: ")
+  # if should_continue.lower() == "y" or should_continue.lower() == "yes":
+  #   print("exec: aws glacier delete-vault --account-id " + account_id + " --vault-name " + vault_name)
+  #   subprocess.run(['aws', 'glacier', 'delete-vault', '--account-id', account_id, '--vault-name', vault_name])
+
+  print("deletion completed, you can remove the vault after some time (aws needs some time to delete all the archives) from the console or calling this command")
+  print("exec: aws glacier delete-vault --account-id " + account_id + " --vault-name " + vault_name)
 
   sys.exit()
 
