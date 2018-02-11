@@ -90,7 +90,7 @@ def delete_archives(account_id, vault_name, region):
   should_continue = input("archives deletion completed, do you want to remove the vault " + vault_name + "? [Y/N]: ")
   if should_continue.lower() == "y" or should_continue.lower() == "yes":
     print("exec: aws glacier delete-vault --account-id " + account_id + " --vault-name " + vault_name)
-    subprocess.run(['aws', 'glacier', 'delete-vault', '--account-id', account_id, '--vault-name'])
+    subprocess.run(['aws', 'glacier', 'delete-vault', '--account-id', account_id, '--vault-name', vault_name])
 
 # AUX FUNCS
 
