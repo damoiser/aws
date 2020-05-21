@@ -66,8 +66,8 @@ def check_pending_jobs(account_id):
 
 def get_inventory_result(account_id, vault_name, region, job_id):
   print("getting inventory results...")
-  print("exec: aws glacier get-job-output --account-id " + account_id + " --vault-name " + vault_name + " --job-id " + job_id + " " + job_result_filename(vault_name, region))
-  subprocess.run(['aws', 'glacier', 'get-job-output', '--account-id', account_id, '--vault-name', vault_name, '--job-id', job_id, job_result_filename(vault_name, region)])
+  print("exec: AWS_PAGER=\"\" aws glacier get-job-output --account-id " + account_id + " --vault-name " + vault_name + " --job-id " + job_id + " " + job_result_filename(vault_name, region))
+  subprocess.run(['aws', 'glacier', 'get-job-output', '--account-id', account_id, '--vault-name', vault_name, '--job-id', job_id, job_result_filename(vault_name, region)], env=my_env)
 
   should_continue = input("aws results retrieved and stored in " + job_result_filename(vault_name, region) + " do you want to begin the deletion of the archives? [Y/N]: ")
   if should_continue.lower() == "y" or should_continue.lower() == "yes":
@@ -80,8 +80,8 @@ def delete_archives(account_id, vault_name, region):
 
   print("there are " + str(len(aws_results["ArchiveList"])) + " archives to be deleted: ")
   for archive in aws_results["ArchiveList"]:
-    # print("exec: aws glacier delete-archive --account-id " + account_id + " --vault-name " + vault_name + " --archive-id='" + archive["ArchiveId"] + "'")
-    subprocess.run(['aws', 'glacier', 'delete-archive', '--account-id', account_id, '--vault-name', vault_name, '--archive-id=\'' + archive["ArchiveId"] + '\''])
+    # print("exec: AWS_PAGER="" aws glacier delete-archive --account-id " + account_id + " --vault-name " + vault_name + " --archive-id='" + archive["ArchiveId"] + "'")
+    subprocess.run(['aws', 'glacier', 'delete-archive', '--account-id', account_id, '--vault-name', vault_name, '--archive-id=\'' + archive["ArchiveId"] + '\''], env=my_env)
     print('.', end='', flush=True)
 
   print("\n")
@@ -134,6 +134,9 @@ print("this script will delete all archives and the vault or resume a pending jo
 print("you can always abort the script running CTRL-C")
 
 create_dir_structure()
+
+my_env = os.environ.copy()
+my_env["AWS_PAGER"] = ""
 
 def exit_signal_handler(signal, frame):
         print('\nbye!')
