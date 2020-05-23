@@ -3,3 +3,4 @@
 *.job
 *.job.done
 results*
+glacier/downloads/*
