@@ -1,3 +1,5 @@
+# functions used in others scripts to start / get the inventory
+
 import subprocess, json, glob, os
 
 def init_inventory_job(account_id, vault_name, region):
@@ -54,14 +56,17 @@ def check_pending_jobs(account_id):
             should_continue = input("the job is successfully finished, do you want to retrieve the results? [Y/N]: ")
             if should_continue.lower() == "y" or should_continue.lower() == "yes":
               get_inventory_result(account_id, vault_name, region, job_id)
+              return str(job_id), vault_name
             break
         
         if found == False:
           print("job not found, probably expired! You have to request it again")
       else:
         print("don't continue with current jobs")
+
   else:
     print("no pending jobs found")
+    return "", ""
 
 def get_inventory_result(account_id, vault_name, region, job_id):
   print("getting inventory results...")
