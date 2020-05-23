@@ -1,5 +1,5 @@
 
-import subprocess, json, sys, os, glob, signal
+import subprocess, json, sys, os, glob, signal, threading
 
 ########################################
 # functions
@@ -80,10 +80,11 @@ def delete_archives(account_id, vault_name, region):
 
   print("there are " + str(len(aws_results["ArchiveList"])) + " archives to be deleted: ")
   for archive in aws_results["ArchiveList"]:
-    # print("exec: AWS_PAGER="" aws glacier delete-archive --account-id " + account_id + " --vault-name " + vault_name + " --archive-id='" + archive["ArchiveId"] + "'")
-    subprocess.run(['aws', 'glacier', 'delete-archive', '--account-id', account_id, '--vault-name', vault_name, '--archive-id=\'' + archive["ArchiveId"] + '\''], env=my_env)
-    print('.', end='', flush=True)
 
+    th = threading.Thread(target=delete_archive, args=(['aws', 'glacier', 'delete-archive', '--account-id', account_id, '--vault-name', vault_name, '--archive-id=\'' + archive["ArchiveId"] + '\''],))
+    
+    semaphore.acquire()
+    th.start()
   print("\n")
 
   os.rename(job_tmp_filename(vault_name, region), job_tmp_filename(vault_name, region) + ".done")
@@ -97,6 +98,13 @@ def delete_archives(account_id, vault_name, region):
   print("exec: aws glacier delete-vault --account-id " + account_id + " --vault-name " + vault_name)
 
   sys.exit()
+
+def delete_archive(cmd):
+    # print("exec: AWS_PAGER="" aws glacier delete-archive --account-id " + account_id + " --vault-name " + vault_name + " --archive-id='" + archive["ArchiveId"] + "'")
+    subprocess.run(cmd, env=my_env)
+    print('.', end='', flush=True)
+    semaphore.release() 
+
 
 # AUX FUNCS
 
@@ -137,6 +145,10 @@ create_dir_structure()
 
 my_env = os.environ.copy()
 my_env["AWS_PAGER"] = ""
+
+max_connections = 20
+
+semaphore = threading.BoundedSemaphore(max_connections)
 
 def exit_signal_handler(signal, frame):
         print('\nbye!')
