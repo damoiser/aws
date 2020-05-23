@@ -1,3 +1,5 @@
+# auxiliaries functions
+
 import json, sys, subprocess
 
 def print_vaults(account_id):
