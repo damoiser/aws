@@ -39,13 +39,16 @@ def check_pending_jobs(account_id):
       should_continue = input("do you want to check the status for region " + region + " vault name " + vault_name + " and job id " + job_id + "? [Y/N]: ")
       if should_continue.lower() == "y" or should_continue.lower() == "yes":
 
-        print("exec: aws glacier list-jobs --account-id " + account_id + " --vault-name " + vault_name)
+        # print("exec: aws glacier list-jobs --account-id " + account_id + " --vault-name " + vault_name)
         aws_jobs = json.loads(subprocess.run(['aws', 'glacier', 'list-jobs', '--account-id', account_id, '--vault-name', vault_name], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
+
+        found = False
 
         for aws_job in aws_jobs["JobList"]:
           if aws_job["JobId"] != job_id:
             continue
 
+          found = True
           if aws_job["StatusCode"] == "InProgress":
             print("the jobs is still running...")
             break
@@ -59,6 +62,9 @@ def check_pending_jobs(account_id):
             if should_continue.lower() == "y" or should_continue.lower() == "yes":
               get_inventory_result(account_id, vault_name, region, job_id)
             break
+        
+        if found == False:
+          print("job not found, probably expired! You have to request it again")
       else:
         print("don't continue with current jobs")
   else:
