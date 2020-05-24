@@ -14,3 +14,10 @@ def print_vaults(account_id):
   else:
     print("cannot get all vaults")
     sys.exit()
+
+
+def get_download_job_filename(vault_name, region, archive_id, archive_count):
+  if archive_id == "":
+    return "jobs/" + str(region) + "__" + str(vault_name) + "__" + str(archive_count) + ".job"
+  else:
+    return "jobs/" + str(region) + "__" + str(vault_name) + "__" + archive_id + ".job"
