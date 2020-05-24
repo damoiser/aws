@@ -66,7 +66,8 @@ def check_pending_jobs(account_id):
 
   else:
     print("no pending jobs found")
-    return "", ""
+  
+  return "", ""
 
 def get_inventory_result(account_id, vault_name, region, job_id):
   print("getting inventory results...")
