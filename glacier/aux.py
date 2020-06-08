@@ -16,8 +16,11 @@ def print_vaults(account_id):
     sys.exit()
 
 
-def get_download_job_filename(vault_name, region, archive_id, archive_count):
-  if archive_id == "":
-    return "jobs/" + str(region) + "__" + str(vault_name) + "__" + str(archive_count) + ".job"
-  else:
-    return "jobs/" + str(region) + "__" + str(vault_name) + "__" + archive_id + ".job"
+def get_archive_job_tmp_filename(vault_name, region):
+  return "jobs/" + str(region) + "__" + str(vault_name) + "__archive.job"
+
+def get_archive_job_result_filename(vault_name, region):
+  return "jobs/" + str(region) + "__" + str(vault_name) + "__archive__results.json"
+
+def get_download_job_filename(vault_name, region, archive_ids):
+  return "jobs/" + str(region) + "__" + str(vault_name) + "__" + str(len(archive_ids)) + ".download_job"
