@@ -22,30 +22,35 @@ def select_what_download(account_id, vault_name, region):
       inventory.init_inventory_job(account_id, vault_name, region)
       sys.exit()
     elif nr == "1":
+      print("retrieve single archive by archive id")
+
     elif nr == "2":
+      print("retrieve range of files from inventory list (index_start, index_end)")
+
     elif nr == "3":
+      print("retrieve all archives present in inventory")
+
     else:
+      print("value not recognized...try again")
 
 
-def download_single_archive(archive_id)
-"""   aws glacier initiate-job --account-id - --vault-name my-vault --job-parameters file://job-archive-retrieval.json
-
-  job-archive-retrieval.json  is  a  JSON  file  in the local folder that
-  specifies the type of job, archive ID, and some optional parameters:
-
-    {
-      "Type": "archive-retrieval",
-      "ArchiveId": "kKB7ymWJVpPSwhGP6ycSOAekp9ZYe_--zM_mw6k76ZFGEIWQX-ybtRDvc2VkPSDtfKmQrj0IRQLSGsNuDp-AJVlu2ccmDSyDUmZwKbwbpAdGATGDiB3hHO0bjbGehXTcApVud_wyDw",
-      "Description": "Retrieve archive on 2015-07-17",
-      "SNSTopic": "arn:aws:sns:us-west-2:0123456789012:my-topic"
-    } """
+def download_single_archive(archive_id):
+ #  aws glacier initiate-job --account-id - --vault-name my-vault --job-parameters file://job-archive-retrieval.json
+ #  job-archive-retrieval.json  is  a  JSON  file  in the local folder that
+ #  specifies the type of job, archive ID, and some optional parameters:
+ #   {
+ #     "Type": "archive-retrieval",
+ #     "ArchiveId": "kKB7ymWJVpPSwhGP6ycSOAekp9ZYe_--zM_mw6k76ZFGEIWQX-ybtRDvc2VkPSDtfKmQrj0IRQLSGsNuDp-AJVlu2ccmDSyDUmZwKbwbpAdGATGDiB3hHO0bjbGehXTcApVud_wyDw",
+ #     "Description": "Retrieve archive on 2015-07-17",
+ #     "SNSTopic": "arn:aws:sns:us-west-2:0123456789012:my-topic"
+ #   }
 
   request_parameters = {
     "Type": "archive-retrieval",
     "ArchiveId": archive_id,
   }
 
-  aws_job_response = json.loads(subprocess.run(['aws', 'glacier', 'initiate-job', '--account-id', account_id, '--vault-name', vault_name, '--job-parameters', json.dumps(request_parameters), job_result_filename(vault_name, region)], , stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n')))
+  aws_job_response = json.loads(subprocess.run(['aws', 'glacier', 'initiate-job', '--account-id', account_id, '--vault-name', vault_name, '--job-parameters', json.dumps(request_parameters), job_result_filename(vault_name, region)], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
   
   job_id = aws_job_response["jobId"]
 
