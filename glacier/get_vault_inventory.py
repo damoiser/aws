@@ -1,6 +1,7 @@
 # functions used in others scripts to start / get the inventory
 
 import subprocess, json, glob, os
+import aux
 
 def init_inventory_job(account_id, vault_name, region):
   print("starting init inventory job, after the initialization you need to wait some hours to wait that AWS finish the job, you can rerun the job to check the status")
