@@ -18,18 +18,17 @@ def select_what_download(account_id, vault_name, region):
       job_id, _ = inventory.check_pending_jobs(account_id)
 
       if job_id == "":
-        answer = input("do you want")
-      inventory.init_inventory_job(account_id, vault_name, region)
-      sys.exit()
+        print("no inventory present yet...init new inventory retrieval")
+        inventory.init_inventory_job(account_id, vault_name, region)
+        sys.exit()
+
     elif nr == "1":
-      print("retrieve single archive by archive id")
-
+      archive_id = input("provide archive id as present in the inventory list")
+      download_single_archive(archive_id)
     elif nr == "2":
-      print("retrieve range of files from inventory list (index_start, index_end)")
-
+      print("[TODO] retrieve range of files from inventory list (index_start, index_end)")
     elif nr == "3":
-      print("retrieve all archives present in inventory")
-
+      print("[TODO] retrieve all archives present in inventory")
     else:
       print("value not recognized...try again")
 
@@ -50,7 +49,7 @@ def download_single_archive(archive_id):
     "ArchiveId": archive_id,
   }
 
-  aws_job_response = json.loads(subprocess.run(['aws', 'glacier', 'initiate-job', '--account-id', account_id, '--vault-name', vault_name, '--job-parameters', json.dumps(request_parameters), job_result_filename(vault_name, region)], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
+  aws_job_response = json.loads(subprocess.run(['aws', 'glacier', 'initiate-job', '--account-id', account_id, '--vault-name', vault_name, '--job-parameters', json.dumps(request_parameters), job_result_filename(vault_name, region)], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n')
   
   job_id = aws_job_response["jobId"]
 
