@@ -5,7 +5,6 @@ import aux
 import get_vault_inventory as inventory
 
 def select_what_download(account_id, vault_name, region):
-  print("0. get inventory list [if not yet done]")
   print("1. single archive")
   print("2. range of files from result set")
   print("3. all vault (all result set)")
@@ -15,17 +14,10 @@ def select_what_download(account_id, vault_name, region):
   os.makedirs(os.path.join("downloads", vault_name))
 
   while True:
-    if nr == "0":
-      job_id, _ = inventory.check_pending_jobs(account_id)
-
-      if job_id == "":
-        print("no inventory present yet...init new inventory retrieval")
-        inventory.init_inventory_job(account_id, vault_name, region)
-        sys.exit()
-
-    elif nr == "1":
+    if nr == "1":
       archive_id = input("provide archive id as present in the inventory list: ")
-      start_or_check_retrieval_job([archive_id])
+      archive_filename = input("provide archive filenam as present in the inventory list: ")
+      start_or_check_retrieval_job([{archive_id: archive_id, archive_filename: archive_filename}])
     elif nr == "2":
       print("[TODO] retrieve range of files from inventory list (index_start, index_end)")
     elif nr == "3":
@@ -34,14 +26,14 @@ def select_what_download(account_id, vault_name, region):
       print("value not recognized...try again")
 
 
-def start_or_check_retrieval_job(archive_ids):
+def start_or_check_retrieval_job(archives):
   # check if job is already running
-  job_files = glob.glob(aux.get_download_job_filename(vault_name, region, archive_ids))
+  job_files = glob.glob(aux.get_download_job_filename(vault_name, region, archives))
   if len(job_files) > 0:
-    answer = input("it seems that a download job is already running", aux.get_download_job_filename(vault_name, region, archive_ids), "check the status? [y,n]: ")
+    answer = input("it seems that a download job is already running", aux.get_download_job_filename(vault_name, region, archives), "check the status? [y,n]: ")
     if answer.lower() == "y" or answer.lower() == "yes":
     
-      file = open(aux.get_download_job_filename(vault_name, region, archive_ids), "r")
+      file = open(aux.get_download_job_filename(vault_name, region, archives), "r")
       job_id = file.read()
       file.close()
 
@@ -66,8 +58,8 @@ def start_or_check_retrieval_job(archive_ids):
         if aws_job["StatusCode"] == "Succeeded":
           should_continue = input("the job is successfully finished, do you want to download the archive(s)? [Y/N]: ")
           if should_continue.lower() == "y" or should_continue.lower() == "yes":
-            for archive_id in archive_ids:
-              download_single_archive(job_id, archive_id)
+            for archive in archives:
+              download_single_archive(job_id, archive)
             print("download done, exiting...")
             sys.exit(0)
       
@@ -83,6 +75,9 @@ def start_or_check_retrieval_job(archive_ids):
  #     "Description": "Retrieve archive on 2015-07-17",
  #     "SNSTopic": "arn:aws:sns:us-west-2:0123456789012:my-topic"
  #   }
+
+# to be fixed with batch download
+  archive_id = archives[0].archive_id
 
   request_parameters = {
     "Type": "archive-retrieval",
@@ -139,4 +134,5 @@ while True:
   else:
     break
 
-select_what_download(account_id, vault_name, region)
+print("no inventory present yet...init new inventory retrieval")
+inventory.init_inventory_job(account_id, vault_name, region)
