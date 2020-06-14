@@ -16,7 +16,6 @@ def init_inventory_job(account_id, vault_name, region):
   job_file.write(job_id)
   job_file.close()
 
-
 def check_pending_jobs(account_id):
   print("checking pending jobs...")
 
