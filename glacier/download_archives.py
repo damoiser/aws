@@ -5,12 +5,11 @@ import aux
 import get_vault_inventory as inventory
 
 def select_what_download(account_id, vault_name, region):
-  print("decide what to download:")
   print("0. get inventory list [if not yet done]")
   print("1. single archive")
   print("2. range of files from result set")
   print("3. all vault (all result set)")
-  nr = input("Put a number")
+  nr = input("select an action: ")
 
   # create base vault download path
   os.makedirs(os.path.join("downloads", vault_name))
@@ -25,7 +24,7 @@ def select_what_download(account_id, vault_name, region):
         sys.exit()
 
     elif nr == "1":
-      archive_id = input("provide archive id as present in the inventory list")
+      archive_id = input("provide archive id as present in the inventory list: ")
       start_or_check_retrieval_job([archive_id])
     elif nr == "2":
       print("[TODO] retrieve range of files from inventory list (index_start, index_end)")
@@ -39,7 +38,7 @@ def start_or_check_retrieval_job(archive_ids):
   # check if job is already running
   job_files = glob.glob(aux.get_download_job_filename(vault_name, region, archive_ids))
   if len(job_files) > 0:
-    answer = input("it seems that a download job is already running", aux.get_download_job_filename(vault_name, region, archive_ids), "check the status? [y,n]:")
+    answer = input("it seems that a download job is already running", aux.get_download_job_filename(vault_name, region, archive_ids), "check the status? [y,n]: ")
     if answer.lower() == "y" or answer.lower() == "yes":
     
       file = open(aux.get_download_job_filename(vault_name, region, archive_ids), "r")
@@ -139,3 +138,5 @@ while True:
     print("please define a valid vault name...")
   else:
     break
+
+select_what_download(account_id, vault_name, region)
