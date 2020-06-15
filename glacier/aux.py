@@ -25,5 +25,5 @@ def get_archive_job_result_filename(vault_name, region):
 def get_download_job_filename(vault_name, region, archive_ids):
   return "jobs/" + str(region) + "__" + str(vault_name) + "__" + str(len(archive_ids)) + ".download_job"
 
-def get_download_archive_id(vault_name, archive_id):
-  return "downloads/" + str(vault_name) + "/" + archive_id
+def get_download_archive_id(vault_name, archive_name):
+  return "downloads/" + str(vault_name) + "/" + archive_name
