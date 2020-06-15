@@ -5,19 +5,21 @@ import aux
 import get_vault_inventory as inventory
 
 def select_what_download(account_id, vault_name, region):
-  print("1. single archive")
-  print("2. range of files from result set")
-  print("3. all vault (all result set)")
-  nr = input("select an action: ")
-
   # create base vault download path
-  os.makedirs(os.path.join("downloads", vault_name))
+  path = os.path.join("downloads", vault_name)
+  if not os.path.isdir(path):
+    os.makedirs(path)
 
   while True:
+    print("1. single archive")
+    print("2. range of files from result set")
+    print("3. all vault (all result set)")
+    nr = input("select an action: ")
+
     if nr == "1":
       archive_id = input("provide archive id as present in the inventory list: ")
-      archive_filename = input("provide archive filenam as present in the inventory list: ")
-      start_or_check_retrieval_job([{archive_id: archive_id, archive_filename: archive_filename}])
+      archive_filename = input("provide archive filename as present in the inventory list: ")
+      start_or_check_retrieval_job([{'archive_id': archive_id, 'archive_filename': archive_filename}])
     elif nr == "2":
       print("[TODO] retrieve range of files from inventory list (index_start, index_end)")
     elif nr == "3":
@@ -76,8 +78,9 @@ def start_or_check_retrieval_job(archives):
  #     "SNSTopic": "arn:aws:sns:us-west-2:0123456789012:my-topic"
  #   }
 
-# to be fixed with batch download
-  archive_id = archives[0].archive_id
+  # to be fixed with batch download
+  archive_id = archives[0]['archive_id']
+  archive_filename = archives[0]['archive_filename']
 
   request_parameters = {
     "Type": "archive-retrieval",
@@ -89,7 +92,7 @@ def start_or_check_retrieval_job(archives):
   job_id = aws_job_response["jobId"]
 
   job_file = open(aux.get_download_job_filename(vault_name, region, [archive_id]), "w")
-  job_file.write(job_id)
+  job_file.write({'job_id': job_id, 'archive_id': archive_id, 'archive_filename': archive_filename)
   job_file.close()
 
   print("job for vault " + vault_name + " initiated (job id: "  + job_id + "), job id stored in " + aux.get_download_job_filename(vault_name, region, [archive_id]))
@@ -118,7 +121,14 @@ signal.signal(signal.SIGINT, exit_signal_handler)
 
 account_id, aws_region, region, my_env = inits.get_aws_config()
 
-print("checking if there are current pending jobs...")
+
+
+
+print("checking if there are current download pending jobs...")
+
+
+
+print("checking if there are other pending jobs...")
 job_id, vault_name = inventory.check_pending_jobs(account_id)
 if job_id != "":
   select_what_download(account_id, vault_name, region)
