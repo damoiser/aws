@@ -29,45 +29,6 @@ def select_what_download(account_id, vault_name, region):
 
 
 def start_or_check_retrieval_job(archives):
-  # check if job is already running
-  job_files = glob.glob(aux.get_download_job_filename(vault_name, region, archives))
-  if len(job_files) > 0:
-    answer = input("it seems that a download job is already running", aux.get_download_job_filename(vault_name, region, archives), "check the status? [y,n]: ")
-    if answer.lower() == "y" or answer.lower() == "yes":
-    
-      file = open(aux.get_download_job_filename(vault_name, region, archives), "r")
-      job_id = file.read()
-      file.close()
-
-      # print("exec: aws glacier list-jobs --account-id " + account_id + " --vault-name " + vault_name)
-      aws_jobs = json.loads(subprocess.run(['aws', 'glacier', 'list-jobs', '--account-id', account_id, '--vault-name', vault_name], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
-
-      found = False
-
-      for aws_job in aws_jobs["JobList"]:
-        if aws_job["JobId"] != job_id:
-          continue
-
-        found = True
-        if aws_job["StatusCode"] == "InProgress":
-          print("the jobs is still running...")
-          break
-
-        if aws_job["StatusCode"] == "Failed":
-          print("the job has failed!")
-          break
-
-        if aws_job["StatusCode"] == "Succeeded":
-          should_continue = input("the job is successfully finished, do you want to download the archive(s)? [Y/N]: ")
-          if should_continue.lower() == "y" or should_continue.lower() == "yes":
-            for archive in archives:
-              download_single_archive(job_id, archive)
-            print("download done, exiting...")
-            sys.exit(0)
-      
-      if found == False:
-        print("job not found, probably expired! You have to request it again")
-
  #  aws glacier initiate-job --account-id - --vault-name my-vault --job-parameters file://job-archive-retrieval.json
  #  job-archive-retrieval.json  is  a  JSON  file  in the local folder that
  #  specifies the type of job, archive ID, and some optional parameters:
@@ -92,16 +53,56 @@ def start_or_check_retrieval_job(archives):
   job_id = aws_job_response["jobId"]
 
   job_file = open(aux.get_download_job_filename(vault_name, region, [archive_id]), "w")
-  job_file.write({'job_id': job_id, 'archive_id': archive_id, 'archive_filename': archive_filename)
+  job_file.write({'job_id': job_id, 'archive_id': archive_id, 'archive_filename': archive_filename})
   job_file.close()
 
   print("job for vault " + vault_name + " initiated (job id: "  + job_id + "), job id stored in " + aux.get_download_job_filename(vault_name, region, [archive_id]))
 
+def check_pending_jobs():
+  jobs = glob.glob("jobs/*.download_job")
 
-def download_single_archive(job_id, archive_id):
-  print("start download request for archive_id:", archive_id)
+  for job_filename in jobs:
+    answer = input("it seems that a download job is already running " + job_filename + " check the status? [y,n]: ")
+    if answer.lower() == "y" or answer.lower() == "yes":
+    
+      file = open(job_filename, "r")
+      data = file.read()
+      print("file " + data)
+      job = json.loads(data)
+      file.close()
 
-  subprocess.run(['aws', 'glacier', 'get-job-output', '--account-id', account_id, '--vault-name', vault_name, '--job-id', job_id, aux.get_download_archive_id(vault_name,archive_id)])
+      found = False
+
+      # print("exec: aws glacier list-jobs --account-id " + account_id + " --vault-name " + vault_name)
+      aws_jobs = json.loads(subprocess.run(['aws', 'glacier', 'list-jobs', '--account-id', account_id, '--vault-name', vault_name], stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n'))
+
+      for aws_job in aws_jobs["JobList"]:
+        if aws_job["JobId"] != job["job_id"]:
+          continue
+
+        found = True
+        if aws_job["StatusCode"] == "InProgress":
+          print("the jobs is still running...")
+          break
+
+        if aws_job["StatusCode"] == "Failed":
+          print("the job has failed!")
+          break
+
+        if aws_job["StatusCode"] == "Succeeded":
+          should_continue = input("the job is successfully finished, do you want to download the archive(s) present in the jobs? [Y/N]: ")
+          if should_continue.lower() == "y" or should_continue.lower() == "yes":
+            download_single_archive(job_id, job)
+            print("download done, exiting...")
+            sys.exit(0)
+      
+      if found == False:
+        print("job not found, probably expired! You have to request it again")
+
+def download_single_archive(job_id, job):
+  print("start download request for archive_id:", job["archive_id"])
+
+  subprocess.run(['aws', 'glacier', 'get-job-output', '--account-id', account_id, '--vault-name', vault_name, '--job-id', job["job_id"], aux.get_download_archive_id(vault_name, job["job_id"])])
 
 
 ########################################
@@ -121,11 +122,14 @@ signal.signal(signal.SIGINT, exit_signal_handler)
 
 account_id, aws_region, region, my_env = inits.get_aws_config()
 
-
-
-
 print("checking if there are current download pending jobs...")
 
+
+check_pending_jobs()
+
+### to be removed
+select_what_download(account_id, "roots-docs", region)
+###
 
 
 print("checking if there are other pending jobs...")
