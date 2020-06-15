@@ -11,12 +11,17 @@ def select_what_download(account_id, vault_name, region):
     os.makedirs(path)
 
   while True:
+    print("0. begin full inventory retrieval")
     print("1. single archive")
     print("2. range of files from result set")
     print("3. all vault (all result set)")
     nr = input("select an action: ")
 
-    if nr == "1":
+    if nr == "0":
+      print("begin inventory retrieval")
+      inventory.init_inventory_job(account_id, vault_name, region)
+      sys.exit(0)
+    elif nr == "1":
       archive_id = input("provide archive id as present in the inventory list: ")
       archive_filename = input("provide archive filename as present in the inventory list: ")
       start_or_check_retrieval_job([{'archive_id': archive_id, 'archive_filename': archive_filename}])
@@ -53,7 +58,7 @@ def start_or_check_retrieval_job(archives):
   job_id = aws_job_response["jobId"]
 
   job_file = open(aux.get_download_job_filename(vault_name, region, [archive_id]), "w")
-  job_file.write({'job_id': job_id, 'archive_id': archive_id, 'archive_filename': archive_filename})
+  job_file.write({'job_id': job_id, 'archives': [{'archive_id': archive_id, 'archive_filename': archive_filename}]})
   job_file.close()
 
   print("job for vault " + vault_name + " initiated (job id: "  + job_id + "), job id stored in " + aux.get_download_job_filename(vault_name, region, [archive_id]))
@@ -66,9 +71,7 @@ def check_pending_jobs():
     if answer.lower() == "y" or answer.lower() == "yes":
     
       file = open(job_filename, "r")
-      data = file.read()
-      print("file " + data)
-      job = json.loads(data)
+      job = json.loads(file.read())
       file.close()
 
       found = False
@@ -92,14 +95,14 @@ def check_pending_jobs():
         if aws_job["StatusCode"] == "Succeeded":
           should_continue = input("the job is successfully finished, do you want to download the archive(s) present in the jobs? [Y/N]: ")
           if should_continue.lower() == "y" or should_continue.lower() == "yes":
-            download_single_archive(job_id, job)
+            download_single_archive(job)
             print("download done, exiting...")
             sys.exit(0)
       
       if found == False:
         print("job not found, probably expired! You have to request it again")
 
-def download_single_archive(job_id, job):
+def download_single_archive(job):
   print("start download request for archive_id:", job["archive_id"])
 
   subprocess.run(['aws', 'glacier', 'get-job-output', '--account-id', account_id, '--vault-name', vault_name, '--job-id', job["job_id"], aux.get_download_archive_id(vault_name, job["job_id"])])
@@ -122,22 +125,6 @@ signal.signal(signal.SIGINT, exit_signal_handler)
 
 account_id, aws_region, region, my_env = inits.get_aws_config()
 
-print("checking if there are current download pending jobs...")
-
-
-check_pending_jobs()
-
-### to be removed
-select_what_download(account_id, "roots-docs", region)
-###
-
-
-print("checking if there are other pending jobs...")
-job_id, vault_name = inventory.check_pending_jobs(account_id)
-if job_id != "":
-  select_what_download(account_id, vault_name, region)
-  sys.exit()
-
 aux.print_vaults(account_id)
 
 while True:
@@ -148,5 +135,7 @@ while True:
   else:
     break
 
-print("no inventory present yet...init new inventory retrieval")
-inventory.init_inventory_job(account_id, vault_name, region)
+print("checking if there are current download pending jobs...")
+check_pending_jobs()
+
+select_what_download(account_id, vault_name, region)
