@@ -2,5 +2,6 @@
 # ignore aws jobs tmp files
 *.job
 *.job.done
+*.download_job
 results*
 glacier/downloads/*
