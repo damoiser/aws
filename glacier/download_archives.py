@@ -103,7 +103,7 @@ def check_pending_jobs():
         print("job not found, probably expired! You have to request it again")
 
 def download_single_archive(job):
-  print("start download request for archive_id:", job["archive_id"])
+  print("start download request for job_id:" + job["job_id"])
 
   subprocess.run(['aws', 'glacier', 'get-job-output', '--account-id', account_id, '--vault-name', vault_name, '--job-id', job["job_id"], aux.get_download_archive_id(vault_name, job["job_id"])])
 
